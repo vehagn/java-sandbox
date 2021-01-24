@@ -1,16 +1,14 @@
-package com.sandbox.model;
+package com.sandbox.model.items;
 
 import com.sandbox.exceptions.InvalidIdException;
-import com.sandbox.model.constants.ItemType;
+import com.sandbox.model.Entity;
 
 import java.util.Locale;
 
-public class Item {
+public abstract class Item implements Entity {
     private final String id;
-    private final ItemType itemType;
-    private final String name;
 
-    public Item(String id, ItemType itemType, String name) {
+    protected Item(String id) {
         if (id == null || id.isBlank()) {
             throw new InvalidIdException("Item ID can't be empty.");
         } else if (id.length() > 32) {
@@ -19,8 +17,6 @@ public class Item {
             throw new InvalidIdException("Item ID may only contain alphanumeric characters.");
         }
         this.id = id.toUpperCase(Locale.ROOT);
-        this.itemType = itemType;
-        this.name = name;
     }
 
     @Override
@@ -41,13 +37,4 @@ public class Item {
     public String getId() {
         return id;
     }
-
-    public ItemType getType() {
-        return itemType;
-    }
-
-    public String getName() {
-        return name;
-    }
-
 }

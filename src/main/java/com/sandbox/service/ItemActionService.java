@@ -4,8 +4,8 @@ import com.sandbox.exceptions.ActionNotFoundException;
 import com.sandbox.exceptions.ItemIdAlreadyRegisteredException;
 import com.sandbox.exceptions.ItemNotFoundException;
 import com.sandbox.model.Action;
-import com.sandbox.model.Item;
-import com.sandbox.model.constants.ItemType;
+import com.sandbox.model.items.Item;
+import com.sandbox.model.items.ItemClass;
 
 import java.time.Instant;
 import java.util.*;
@@ -44,11 +44,6 @@ public class ItemActionService {
         items.put(item.getId(), item);
     }
 
-    public void registerItem(final String itemId, final ItemType itemType, final String name) {
-        Item item = new Item(itemId, itemType, name);
-        this.registerItem(item);
-    }
-
     public UUID registerActionOnItem(final String itemId, final String actionDescription, final Integer actionCost, final Instant actionDate) {
         if (!items.containsKey(itemId)) {
             throw new ItemNotFoundException();
@@ -77,15 +72,15 @@ public class ItemActionService {
         return Collections.singletonMap(action, item);
     }
 
-    public Set<String> getItemIdsOfType(ItemType itemType) {
+    public Set<String> getItemIdsOfType(ItemClass itemClass) {
         return items.values().stream()
-                .filter(item -> item.getType().equals(itemType))
+                .filter(item -> item.getClass().equals(itemClass.getItemClass()))
                 .map(Item::getId)
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    public List<Action> getActionsOnItemTypeSortedByPerformedDate(ItemType itemType) {
-        final Set<String> itemIds = this.getItemIdsOfType(itemType);
+    public List<Action> getActionsOnItemTypeSortedByPerformedDate(ItemClass itemClass) {
+        final Set<String> itemIds = this.getItemIdsOfType(itemClass);
 
         return actions.stream()
                 .filter(action -> itemIds.contains(action.getItemId()))
@@ -104,8 +99,8 @@ public class ItemActionService {
         return itemActionCost;
     }
 
-    public Map<String, Integer> getItemIdsWithTotalActionCostByItemType(ItemType itemType) {
-        final Set<String> itemIdsOfType = this.getItemIdsOfType(itemType);
+    public Map<String, Integer> getItemIdsWithTotalActionCostByItemType(ItemClass itemClass) {
+        final Set<String> itemIdsOfType = this.getItemIdsOfType(itemClass);
 
         return this.getItemIdsWithTotalActionCost().entrySet()
                 .stream().filter(e -> itemIdsOfType.contains(e.getKey()))
@@ -116,11 +111,11 @@ public class ItemActionService {
      * Finds the {@code Item} of type {@code itemType} with the highest total action cost.
      * If more than one {@code Item} have the same highest total cost all are returned.
      *
-     * @param itemType {@code ItemType}
+     * @param itemClass {@code ItemType}
      * @return {@code Item}(s) of type {@code itemType} with the highest total cost together with the highest cost
      */
-    public Map<Item, Integer> getItemsWithHighestTotalActionCostByItemType(ItemType itemType) {
-        final Map<String, Integer> itemIdsTotalActionCostMap = this.getItemIdsWithTotalActionCostByItemType(itemType);
+    public Map<Item, Integer> getItemsWithHighestTotalActionCostByItemType(ItemClass itemClass) {
+        final Map<String, Integer> itemIdsTotalActionCostMap = this.getItemIdsWithTotalActionCostByItemType(itemClass);
 
         final Optional<Map.Entry<String, Integer>> maxEntry = itemIdsTotalActionCostMap.entrySet().stream()
                 .max(Comparator.comparingInt(Map.Entry::getValue));
@@ -132,5 +127,15 @@ public class ItemActionService {
                                 e -> items.get(e.getKey()),
                                 Map.Entry::getValue)))
                 .orElse(null);
+    }
+
+    public Map<Class<? extends Item>, Set<Item>> getItemsPartitionedByClass() {
+        final Map<Class<? extends Item>, Set<Item>> partitionedItems = new HashMap<>();
+
+        items.values().forEach(i -> {
+            partitionedItems.putIfAbsent(i.getClass(), new HashSet<>());
+            partitionedItems.get(i.getClass()).add(i);
+        });
+        return partitionedItems;
     }
 }
