@@ -24,7 +24,7 @@ public enum ItemClass {
                             t -> t));
     private final Class<? extends Item> type;
 
-    <T extends Item> ItemClass(final Class<T> type) {
+    ItemClass(final Class<? extends Item> type) {
         this.type = type;
     }
 
@@ -41,6 +41,10 @@ public enum ItemClass {
 
     public Class<? extends Item> getItemClass() {
         return this.type;
+    }
+
+    public ItemClass fromClass(Class<? extends Item> itemType) {
+        return ENUM_MAP.get(itemType);
     }
 
     public Class<? extends Item> getParentClass() {

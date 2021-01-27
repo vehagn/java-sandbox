@@ -129,13 +129,18 @@ public class ItemActionService {
                 .orElse(null);
     }
 
-    public Map<Class<? extends Item>, Set<Item>> getItemsPartitionedByClass() {
+    public Map<Class<? extends Item>, Set<Item>> getItemsPartitionedByClass(ItemClass... itemClasses) {
         final Map<Class<? extends Item>, Set<Item>> partitionedItems = new HashMap<>();
+        if (itemClasses.length < 1) {
+            ItemClass.getAllClasses().forEach(c -> partitionedItems.put(c, new HashSet<>()));
+            items.values().forEach(i -> partitionedItems.get(i.getClass()).add(i));
+        } else {
+            Arrays.stream(itemClasses).forEach(c -> partitionedItems.put(c.getItemClass(), new HashSet<>()));
+            items.values()
+                    .stream().filter(i -> partitionedItems.containsKey(i.getClass()))
+                    .forEach(i -> partitionedItems.get(i.getClass()).add(i));
+        }
 
-        items.values().forEach(i -> {
-            partitionedItems.putIfAbsent(i.getClass(), new HashSet<>());
-            partitionedItems.get(i.getClass()).add(i);
-        });
         return partitionedItems;
     }
 }

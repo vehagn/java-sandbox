@@ -198,19 +198,24 @@ class ItemActionServiceTest {
         itemActionService.registerItem(boxB);
         var partitionedItems = itemActionService.getItemsPartitionedByClass();
 
-        assertEquals(2, partitionedItems.size(), "We should have two different Item class objects.");
+        assertEquals(ItemClass.getAllClasses().size(), partitionedItems.size(),
+                String.format("We should have %d different Item class objects.", ItemClass.getAllClasses().size()));
 
         assertEquals(1, partitionedItems.get(Ball.class).size(), "We should have one Ball object.");
         assertEquals(2, partitionedItems.get(Box.class).size(), "We should have to Ball objects.");
-        assertNull(partitionedItems.get(Dog.class), "We should have no Dog objects.");
+        assertEquals(0, partitionedItems.get(Dog.class).size(), "We should have zero Dog objects.");
 
         itemActionService.registerItem(dogA);
         itemActionService.registerItem(dogB);
         itemActionService.registerItem(dogC);
 
-        partitionedItems = itemActionService.getItemsPartitionedByClass();
+        partitionedItems = itemActionService.getItemsPartitionedByClass(ItemClass.DOG, ItemClass.BOX);
 
-        assertEquals(3, partitionedItems.size(), "We should have three different Item class objects.");
+        assertEquals(2, partitionedItems.size(), "We should have two different Item class objects (Dog and Box).");
+        assertTrue(partitionedItems.containsKey(Dog.class));
+        assertTrue(partitionedItems.containsKey(Box.class));
+        assertFalse(partitionedItems.containsKey(Ball.class));
+
         assertEquals(3, partitionedItems.get(Dog.class).size(), "We should have three Dog objects.");
     }
 }
